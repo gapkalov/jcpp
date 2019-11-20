@@ -1911,10 +1911,6 @@ public class Preprocessor implements Closeable {
                     break;
 
                 case INVALID:
-                    if (getFeature(Feature.CSYNTAX))
-                        error(tok, String.valueOf(tok.getValue()));
-                    return tok;
-
                 default:
                     if (getFeature(Feature.CSYNTAX))
                         error(tok, String.valueOf(tok.getValue()));
