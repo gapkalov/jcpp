@@ -122,6 +122,8 @@ public class Preprocessor implements Closeable {
     private final Set<Warning> warnings;
     private VirtualFileSystem filesystem;
     private PreprocessorListener listener;
+    private String lineDirectiveName;
+    private Integer lineDirectiveNumber;
 
     public Preprocessor() {
         this.inputs = new ArrayList<Source>();
@@ -575,7 +577,19 @@ public class Preprocessor implements Closeable {
             /* We actually want 'did the nested source
              * contain a newline token', which isNumbered()
              * approximates. This is not perfect, but works. */
-            return line_token(t.getLine(), t.getName(), " 2");
+            String name;
+            if(null != lineDirectiveName) {
+                name = lineDirectiveName;
+            } else {
+                name = t.getName();
+            }
+            int line = 0;
+            if(null != lineDirectiveNumber) {
+                line = t.getLine() + lineDirectiveNumber;
+            } else {
+                line = t.getLine() + 1;
+            }
+            return line_token(line, name, " 2");
         }
 
         return null;
@@ -603,7 +617,7 @@ public class Preprocessor implements Closeable {
     @Nonnull
     private Token line_token(int line, @CheckForNull String name, @Nonnull String extra) {
         StringBuilder buf = new StringBuilder();
-        buf.append("#line ").append(line)
+        buf.append("# ").append(line)
                 .append(" \"");
         /* XXX This call to escape(name) is correct but ugly. */
         if (name == null)
@@ -1284,7 +1298,7 @@ public class Preprocessor implements Closeable {
             /* 'tok' is the 'nl' after the include. We use it after the
              * #line directive. */
             if (getFeature(Feature.LINEMARKERS))
-                return line_token(1, source.getName(), " 1");
+                return line_token(1, source.getName(), "");
             return tok;
         } finally {
             lexer.setInclude(false);
@@ -2088,7 +2102,12 @@ public class Preprocessor implements Closeable {
                         // break;
 
                         case PP_LINE:
-                            return source_skipline(false);
+                        // Process the line directive and store it
+                        // I'm not sure how common this behaviour is but another
+                        // tool I'm using requires it
+                            lineDirectiveNumber = ((NumericValue)token_nonwhite().getValue()).intValue();
+                            lineDirectiveName = (String) token_nonwhite().getValue();
+                            return line_token(lineDirectiveNumber, lineDirectiveName, "");
                         // break;
 
                         case PP_PRAGMA:
