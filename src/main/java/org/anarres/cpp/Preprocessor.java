@@ -122,8 +122,6 @@ public class Preprocessor implements Closeable {
     private final Set<Warning> warnings;
     private VirtualFileSystem filesystem;
     private PreprocessorListener listener;
-    private String lineDirectiveName;
-    private Integer lineDirectiveNumber;
 
     public Preprocessor() {
         this.inputs = new ArrayList<Source>();
@@ -577,19 +575,7 @@ public class Preprocessor implements Closeable {
             /* We actually want 'did the nested source
              * contain a newline token', which isNumbered()
              * approximates. This is not perfect, but works. */
-            String name;
-            if(null != lineDirectiveName) {
-                name = lineDirectiveName;
-            } else {
-                name = t.getName();
-            }
-            int line = 0;
-            if(null != lineDirectiveNumber) {
-                line = t.getLine() + lineDirectiveNumber;
-            } else {
-                line = t.getLine() + 1;
-            }
-            return line_token(line, name, " 2");
+            return line_token(t.getLine(), t.getName(), " 2");
         }
 
         return null;
@@ -1295,12 +1281,17 @@ public class Preprocessor implements Closeable {
             }
 
             /* Do the inclusion. */
+            if (source != null)
+                sourcePath = source.getPath();
             include(sourcePath, tok.getLine(), name, quoted, next);
 
             /* 'tok' is the 'nl' after the include. We use it after the
              * #line directive. */
-            if (getFeature(Feature.LINEMARKERS))
-                return line_token(1, sourceName, "");
+            if (getFeature(Feature.LINEMARKERS)) {
+                if (source != null)
+                   sourceName = source.getName();
+                return line_token(1, sourceName, " 1");
+            }
             return tok;
         } finally {
             lexer.setInclude(false);
@@ -2104,12 +2095,7 @@ public class Preprocessor implements Closeable {
                         // break;
 
                         case PP_LINE:
-                        // Process the line directive and store it
-                        // I'm not sure how common this behaviour is but another
-                        // tool I'm using requires it
-                            lineDirectiveNumber = ((NumericValue)token_nonwhite().getValue()).intValue();
-                            lineDirectiveName = (String) token_nonwhite().getValue();
-                            return line_token(lineDirectiveNumber, lineDirectiveName, "");
+                            return source_skipline(false);
                         // break;
 
                         case PP_PRAGMA:
