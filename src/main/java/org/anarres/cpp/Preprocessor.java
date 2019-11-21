@@ -1246,6 +1246,8 @@ public class Preprocessor implements Closeable {
             throws IOException,
             LexerException {
         LexerSource lexer = (LexerSource) source;
+        String sourcePath = source.getPath();
+        String sourceName = source.getName();
         try {
             lexer.setInclude(true);
             Token tok = token_nonwhite();
@@ -1293,12 +1295,12 @@ public class Preprocessor implements Closeable {
             }
 
             /* Do the inclusion. */
-            include(source.getPath(), tok.getLine(), name, quoted, next);
+            include(sourcePath, tok.getLine(), name, quoted, next);
 
             /* 'tok' is the 'nl' after the include. We use it after the
              * #line directive. */
             if (getFeature(Feature.LINEMARKERS))
-                return line_token(1, source.getName(), "");
+                return line_token(1, sourceName, "");
             return tok;
         } finally {
             lexer.setInclude(false);
