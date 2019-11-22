@@ -248,8 +248,6 @@ public abstract class Source implements Iterable<Token>, Closeable {
                     /* There ought to be a newline before EOF.
                      * At least, in any skipline context. */
                     /* XXX Are we sure about this? */
-                    warning(tok.getLine(), tok.getColumn(),
-                            "No newline before end of file");
                     return new Token(NL,
                             tok.getLine(), tok.getColumn(),
                             "\n");
