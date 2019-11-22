@@ -384,14 +384,17 @@ public class LexerSource extends Source {
                 }
                 return val;
 
-            /* Exclude two cases from the warning. */
+            /* Exclude three cases from the warning. */
             case '"':
                 text.append('"');
                 return '"';
             case '\'':
                 text.append('\'');
                 return '\'';
-
+            case 'u':
+                text.append('u');
+                return 'u';
+                
             default:
                 warning("Unnecessary escape character " + (char) d);
                 text.append((char) d);
