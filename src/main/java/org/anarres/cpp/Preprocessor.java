@@ -19,14 +19,17 @@ package org.anarres.cpp;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
@@ -130,6 +133,11 @@ public class Preprocessor implements Closeable {
         macros.put(__LINE__.getName(), __LINE__);
         macros.put(__FILE__.getName(), __FILE__);
         macros.put(__COUNTER__.getName(), __COUNTER__);
+        try {
+            addMacro("__DATE__", "\"" + new SimpleDateFormat("MMM dd yyyy", Locale.ENGLISH).format(new Date()) + "\"");
+            addMacro("__TIME__", "\"" + new SimpleDateFormat("HH:mm:ss", Locale.ENGLISH).format(new Date()) + "\"");
+        } catch (LexerException e) {}
+
         this.states = new Stack<State>();
         states.push(new State());
         this.source = null;
