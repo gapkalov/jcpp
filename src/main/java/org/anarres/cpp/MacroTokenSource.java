@@ -42,6 +42,7 @@ import static org.anarres.cpp.Token.*;
         this.tokens = m.getTokens().iterator();
         this.args = args;
         this.arg = null;
+        // System.out.println("\n###new macro token: " + this.toString() + ", args: " + args);
     }
 
     @Override

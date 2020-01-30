@@ -744,6 +744,7 @@ public class Preprocessor implements Closeable {
 
                 Argument arg = new Argument();
                 int depth = 0;
+                int newLinesCount = 0;
                 boolean space = false;
 
                 ARGS:
@@ -788,11 +789,13 @@ public class Preprocessor implements Closeable {
                         case WHITESPACE:
                         case CCOMMENT:
                         case CPPCOMMENT:
-                        case NL:
                             /* Avoid duplicating spaces. */
                             space = true;
                             break;
-
+                        case NL: // new lines in macro should not be skipped
+                            ++newLinesCount;
+                            space = true;
+                            break;
                         default:
                             /* Do not put space on the beginning of
                              * an argument token. */
@@ -838,6 +841,13 @@ public class Preprocessor implements Closeable {
                 }
 
                 // System.out.println("Macro " + m + " args " + args);
+                // add new lines that were present in macro
+                for (int i = 0; i < newLinesCount; ++i) {
+                    push_source(new FixedTokenSource(
+                            new Token[]{new Token(NL,
+                                        orig.getLine(), orig.getColumn(),
+                                        "\n")}), true);
+                }
             } else {
                 /* nargs == 0 and we (correctly) got () */
                 args = null;
